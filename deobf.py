@@ -67,24 +67,18 @@ def save_deobfuscated_code(deobfuscated_py):
 		out_file.write(deobfuscated_py)
 		out_file.close()
 
-print("Doing surface-level checks...")
+print("Detecting obfuscator...")
 
-if obfuscated_py[0x20:0x31] == 'development-tools':
+development_tools_vars = ['magic', 'love', 'god', 'destiny', 'joy', 'trust']
+dt_obfuscator = True
+for var in development_tools_vars:
+	if var not in obfuscated_py:
+		dt_obfuscator = False
+if dt_obfuscator:
 	print("Detected: development-tools.net")
 	deobfuscated_py = development_tools(obfuscated_py)
 	save_deobfuscated_code(deobfuscated_py)
 else:
-	print("Doing deeper checks...")
-	development_tools_vars = ['magic', 'love', 'god', 'destiny', 'joy', 'trust']
-	dt_obfuscator = True
-	for var in development_tools_vars:
-		if var not in obfuscated_py:
-			dt_obfuscator = False
-	if dt_obfuscator:
-		print("Detected: development-tools.net")
-		deobfuscated_py = development_tools(obfuscated_py)
-		save_deobfuscated_code(deobfuscated_py)
-	else:
-		print("Obfuscator not found.")
+	print("Obfuscator not found.")
 
 print("Finished.")
