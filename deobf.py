@@ -21,12 +21,10 @@ def leak_variable(offset, obfuscated_py):
 			var_text += obfuscated_py[i]
 	return [var_text, end_num]
 
-print("Doing surface-level checks...")
 
-if obfuscated_py[0x20:0x31] == 'development-tools':
-	print("Detected: development-tools.net")
+def development_tools(obfuscated_py):
 	print("Getting variables...")
-	magic_offset = 0x59
+	magic_offset = obfuscated_py.find("magic = '") + len("magic = '")
 	end_num = 0
 	# Here we leak the "magic" variable.
 	magicarr = leak_variable(magic_offset, obfuscated_py)
@@ -52,6 +50,10 @@ if obfuscated_py[0x20:0x31] == 'development-tools':
 	trust += god
 	trust += codecs.decode(destiny, 'rot13')
 	deobfuscated_py = base64.b64decode(trust)
+	return deobfuscated_py
+
+
+def save_deobfuscated_code(deobfuscated_py):
 	if len(sys.argv) > 2:
 		print('Saving to file {}...'.format(sys.argv[2]))
 		out_file = sys.argv[2]
@@ -64,6 +66,25 @@ if obfuscated_py[0x20:0x31] == 'development-tools':
 		out_file = open(out_file, 'wb')
 		out_file.write(deobfuscated_py)
 		out_file.close()
-	print("Finished deobfuscating!")
+
+print("Doing surface-level checks...")
+
+if obfuscated_py[0x20:0x31] == 'development-tools':
+	print("Detected: development-tools.net")
+	deobfuscated_py = development_tools(obfuscated_py)
+	save_deobfuscated_code(deobfuscated_py)
 else:
-	print("Obfuscator not found.")
+	print("Doing deeper checks...")
+	development_tools_vars = ['magic', 'love', 'god', 'destiny', 'joy', 'trust']
+	dt_obfuscator = True
+	for var in development_tools_vars:
+		if var not in obfuscated_py:
+			dt_obfuscator = False
+	if dt_obfuscator:
+		print("Detected: development-tools.net")
+		deobfuscated_py = development_tools(obfuscated_py)
+		save_deobfuscated_code(deobfuscated_py)
+	else:
+		print("Obfuscator not found.")
+
+print("Finished.")
